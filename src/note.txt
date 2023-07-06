@@ -1,0 +1,71 @@
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import Lottie from "lottie-react";
+import WalkingMan from './assets/walking.json'
+
+const App: React.FC = () => {
+  const [weatherData, setWeatherData] = useState<any>(null); 
+  const [currentDateTime, setCurrentDateTime] = useState(new Date());
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const apiKey: string = import.meta.env.VITE_API_KEY as string; 
+      const city: string = 'London';
+
+      try {
+        const response = await axios.get(
+          `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}`
+        );
+        setWeatherData(response.data);
+      } catch (error) {
+        console.error('Error fetching weather data:', error);
+      }
+    };
+    const getData = async () => {
+      const res = await axios.get("https://geolocation-db.com/json/");
+      console.log(res.data);
+      setCountry(res.data.country_name);
+    };
+
+    getData()
+
+    fetchData();
+
+    const interval = setInterval(() => {
+      setCurrentDateTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(interval);
+
+  }, []);
+
+  if (!weatherData) {
+    return <div>Loading...</div>;
+  }
+
+  const { name, main, weather } = weatherData;
+  const temperatureKelvin: number = main.temp;
+  const temperatureCelsius: number = temperatureKelvin - 273.15; // Conversion from Kelvin to Celsius
+  const weatherDescription: string = weather[0].description;
+
+
+  return (
+    <div>
+      <h1>Weather in {name}</h1>
+      <p>Temperature: {temperatureCelsius.toFixed(2)} °C</p>
+      <p>Description: {weatherDescription}</p>
+      <p>Current Date: {currentDateTime.toDateString()}</p>
+      <p>Current Time: {currentDateTime.toLocaleTimeString()}</p>
+      <div className='relative flex w-full justify-center'>
+        <div className='absolute top-[3.6rem] left-[31.7rem] w-[120px] h-[120px] bg-yellow-400 rounded-full z-50'></div>
+        <div className='absolute bg-gray-200 rounded-full overflow-hidden p-6'>
+          <Lottie animationData={WalkingMan} className='h-[400px]'/>
+        </div>
+        
+      </div>
+      
+    </div>
+  );
+};
+
+export default App;
